@@ -6,10 +6,13 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@elysiajs/cookie": "^0.7.0",
+    "@elysiajs/jwt": "^0.7.0",
     "@elysiajs/swagger": "^0.7.3",
     "@prisma/client": "^5.4.2",
     "elysia": "latest",
-    "prisma": "^5.4.2"
+    "prisma": "^5.4.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "bun-types": "latest"
