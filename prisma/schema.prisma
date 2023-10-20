@@ -12,9 +12,21 @@ datasource db {
 
 model Notes {
   id String @id
-  title String
+  title String @db.VarChar(200) @unique
   body String @db.Text
-  tags String
+  tags String @db.VarChar(200)
   updated_at DateTime @default(now())
   owner String
+}
+
+model Users {
+  id String @id
+  username String @db.VarChar(20) @unique
+  fullname String
+  email String
+  password String @db.VarChar(16)
+}
+
+model Authentications {
+  token String @unique
 }
