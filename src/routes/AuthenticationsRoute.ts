@@ -3,4 +3,5 @@ import { authenticationsController } from "../controllers/AuthenticationsControl
 export function configureAuthenticationsRoutes(app) {
     return app
         .post("/", authenticationsController.postAuthentications)
+        .put("/", authenticationsController.putAuthentications)
 }

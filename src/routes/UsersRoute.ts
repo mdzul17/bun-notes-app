@@ -7,6 +7,7 @@ export function configureUsersRoutes(app) {
             guardApp
                 .post("/", usersController.createUser)
         )
-        .get("/:username", usersController.getUserById)
-        .delete("/:username", usersController.deleteUser)
+        .get("/:id", usersController.getUserById)
+        .delete("/:id", usersController.deleteUser)
+        .post("/login", usersController.loginUser)
 }

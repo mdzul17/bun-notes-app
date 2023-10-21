@@ -1,22 +1,78 @@
 import { PrismaClient } from "@prisma/client";
 import { usersController } from "./UsersController";
+import { NotFoundError } from "elysia";
+
+const db = new PrismaClient();
 
 export const authenticationsController = {
-    postAuthentications: async ({ jwt, cookie, setCookie, body, set }) => {
-        const isAvailable = await usersController.verifyUserByUsername(body.username);
+  postAuthentications: async ({ jwt, refreshJwt, body, set }) => {
+    const userId = await usersController.verifyUserByUsername(body.username);
 
-        if (!isAvailable) {
-            set.status = 404
-            return `Username is wrong`
-        }
+    if (!userId) throw new NotFoundError("User not found");
 
-        setCookie('auth', await jwt.sign(body), {
-            httpOnly: true,
-            maxAge: 4 * 86400
-        })
+    const access_token = await jwt.sign(userId);
+    const refresh_token = await refreshJwt.sign(userId);
 
-        console.log('eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Im1kenVsIiwicGFzc3dvcmQiOiIxMjM0NTYiLCJleHAiOjE2OTgzOTk4Njl9.yDtm0w2AtrYvODBQUtZX96YjikbkgdMOAYA2YkBQcdM')
+    await db.authentications.create({
+      data: {
+        token: refresh_token,
+      },
+    });
 
-        return `Sign in as ${cookie.auth}`;
-    },
+    set.status = 201;
+
+    return {
+      data: {
+        access_token: access_token,
+        refresh_token: refresh_token,
+      },
+    };
+  },
+  putAuthentications: async ({
+    jwt,
+    refreshJwt,
+    body: { refresh_token },
+    set,
+  }) => {
+    await db.authentications.findFirst({
+      where: {
+        token: {
+          equals: refresh_token,
+        },
+      },
+    });
+
+    const tokenPayload = await refreshJwt.verify(refresh_token);
+    const access_token = await jwt.sign(tokenPayload);
+
+    console.log(tokenPayload);
+
+    set.status = 200;
+    return {
+      message: "Access token successfully updated",
+      data: {
+        access_token: access_token,
+      },
+    };
+  },
+  deleteAuthentications: async ({
+    refreshJwt,
+    body: { refresh_token },
+    set,
+  }) => {
+    await db.authentications.findFirst({
+      where: {
+        token: {
+          equals: refresh_token,
+        },
+      },
+    });
+
+    await refreshJwt.verify(refresh_token);
+
+    set.status = 200;
+    return {
+      message: "Refresh token has been successfully deleted",
+    };
+  },
 };
