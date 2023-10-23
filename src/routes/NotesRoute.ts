@@ -1,12 +1,12 @@
-import { notesController } from "../controllers/NotesController";
+import { notesHandler } from "../handlers/NotesHandler";
 
 export function configureNotesRoutes(app) {
     return app
-        .get("/", notesController.getNotes)
-        .guard({ body: notesController.validateCreateNote }, (guardApp) =>
+        .get("/", notesHandler.getNotes)
+        .guard({ body: notesHandler.validateCreateNote }, (guardApp) =>
             guardApp
-                .post("/", notesController.createNote)
+                .post("/", notesHandler.createNote)
         )
-        .get("/:id", notesController.getNoteById)
-        .delete("/:id", notesController.deleteNote)
+        .get("/:id", notesHandler.getNoteById)
+        .delete("/:id", notesHandler.deleteNote)
 }

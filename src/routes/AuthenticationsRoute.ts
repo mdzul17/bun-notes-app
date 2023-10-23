@@ -1,7 +1,7 @@
-import { authenticationsController } from "../controllers/AuthenticationsController";
+import { authenticationsHandler } from "../handlers/AuthenticationsHandler";
 
 export function configureAuthenticationsRoutes(app) {
     return app
-        .post("/", authenticationsController.postAuthentications)
-        .put("/", authenticationsController.putAuthentications)
+        .post("/", authenticationsHandler.postAuthentications)
+        .put("/", authenticationsHandler.putAuthentications)
 }

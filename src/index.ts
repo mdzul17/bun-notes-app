@@ -1,4 +1,4 @@
-import { Elysia, NotFoundError, InternalServerError } from "elysia";
+import { Elysia } from "elysia";
 import { configureNotesRoutes } from "./routes/NotesRoute";
 import { configureUsersRoutes } from "./routes/UsersRoute";
 import { configureAuthenticationsRoutes } from "./routes/AuthenticationsRoute";
@@ -6,16 +6,17 @@ import { swagger } from "@elysiajs/swagger";
 import { jwt } from "@elysiajs/jwt";
 import { cookie } from "@elysiajs/cookie"
 import { cors } from "@elysiajs/cors"
-import {AuthenticationError} from "./exceptions/AuthenticationError";
-import {AuthorizationError} from "./exceptions/AuthorizationError";
-import {InvariantError} from "./exceptions/InvariantError";
+import { AuthenticationError } from "./exceptions/AuthenticationError";
+import { AuthorizationError } from "./exceptions/AuthorizationError";
+import { InvariantError } from "./exceptions/InvariantError";
+import bearer from "@elysiajs/bearer";
 
 const app = new Elysia({ prefix: '/api/v1' })
   .error('AUTHENTICATION_ERROR', AuthenticationError)
   .error('AUTHORIZATION_ERROR', AuthorizationError)
   .error('INVARIANT_ERROR', InvariantError)
-  .onError(({code, error, set}) => {
-    switch(code){
+  .onError(({ code, error, set }) => {
+    switch (code) {
       case 'AUTHENTICATION_ERROR':
         set.status = 401
         return error.toString()
@@ -44,6 +45,7 @@ const app = new Elysia({ prefix: '/api/v1' })
   }))
   .use(cookie())
   .use(cors())
+  .use(bearer())
   .use(swagger({
     path: "/swagger"
   }));
