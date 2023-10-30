@@ -3,8 +3,7 @@ import { v4 as uuidv4 } from "uuid"
 import { usersService } from "../services/UsersService";
 
 export const usersHandler = {
-    getUsers: async ({ bearer }) => {
-        console.log(bearer)
+    getUsers: async () => {
         return await usersService.getUsers()
     },
 
@@ -23,6 +22,7 @@ export const usersHandler = {
     getUserById: async ({ set, params: { id } }) => {
         const user = await usersService.getUserById(id)
 
+        set.status = 200
         return user;
     },
 
@@ -33,7 +33,7 @@ export const usersHandler = {
     },
 
     loginUser: async ({ jwt, cookie: { auth }, setCookie, body }) => {
-        const login = await usersService.loginUser(body.username, body.password)
+        const login = await usersService.loginUser(body)
 
         const profile = await jwt.verify(auth);
 

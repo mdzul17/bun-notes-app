@@ -5,6 +5,14 @@ import { AuthorizationError } from "../exceptions/AuthorizationError";
 
 const db = new PrismaClient();
 
+interface notePayload {
+    id: string,
+    title: string,
+    body: string,
+    tags: string,
+    owner: string
+}
+
 export const notesService = {
     getNotes: async (owner: string) => {
         const notes = db.notes.findMany({
@@ -20,7 +28,7 @@ export const notesService = {
         return notes
     },
 
-    createNote: async (payload: any) => {
+    createNote: async (payload: notePayload) => {
         const note = await db.notes.create({
             data: {
                 id: payload.id,
@@ -48,7 +56,7 @@ export const notesService = {
         return note
     },
 
-    deleteNote: async ({ set, cookie, params: { id } }) => {
+    deleteNote: async ({ params: { id } }) => {
         const note =
             await db.notes.delete({
                 where: {

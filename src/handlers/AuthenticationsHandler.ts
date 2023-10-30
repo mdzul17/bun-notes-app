@@ -1,5 +1,4 @@
 import { usersService } from "../services/UsersService";
-import { NotFoundError } from "elysia";
 import { authenticationsService } from "../services/AuthenticationsService";
 
 export const authenticationsHandler = {

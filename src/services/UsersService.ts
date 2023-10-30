@@ -1,15 +1,30 @@
 import { NotFoundError } from "elysia";
 import { PrismaClient } from "@prisma/client";
 import { InvariantError } from "../exceptions/InvariantError";
+import { AuthorizationError } from "../exceptions/AuthorizationError";
+import { AuthenticationError } from "../exceptions/AuthenticationError";
 
 const db = new PrismaClient();
+
+interface createUserPayload {
+    id: string,
+    username: string,
+    fullname: string,
+    email: string,
+    password: string
+}
+
+interface loginPayload {
+    username: string,
+    password: string
+}
 
 export const usersService = {
     getUsers: async () => {
         return await db.users.findMany();
     },
 
-    createUser: async (payload: any) => {
+    createUser: async (payload: createUserPayload) => {
         const user = await db.users.create({
             data: {
                 id: payload.id,
@@ -45,14 +60,14 @@ export const usersService = {
         });
     },
 
-    loginUser: async (username: string, password: string) => {
+    loginUser: async (body: loginPayload) => {
         const user = await db.users.findFirst({
             where: {
                 username: {
-                    equals: username,
+                    equals: body.username,
                 },
                 password: {
-                    equals: password
+                    equals: body.password
                 }
             },
             select: {
@@ -61,7 +76,7 @@ export const usersService = {
         })
 
 
-        if (!user) throw new InvariantError("Username or password is wrong!")
+        if (!user) throw new AuthenticationError("Username or password is wrong!")
     },
 
     verifyUserByUsername: async (username: string) => {
@@ -76,6 +91,20 @@ export const usersService = {
             },
         });
 
+        if (!user) throw new AuthenticationError("Username or password is wrong!")
+
         return user;
+    },
+
+    verifyUserById: async (id: string) => {
+        const user = await db.users.findFirst({
+            where: {
+                username: {
+                    equals: id,
+                },
+            },
+        });
+
+        if (!user) throw new AuthorizationError("You have no access!")
     },
 };

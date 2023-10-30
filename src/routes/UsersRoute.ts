@@ -1,4 +1,5 @@
 import { usersHandler } from "../handlers/UsersHandler";
+import { apiMiddleware } from "../middleware/ApiMiddleware";
 
 export function configureUsersRoutes(app) {
     return app
@@ -7,7 +8,9 @@ export function configureUsersRoutes(app) {
             guardApp
                 .post("/", usersHandler.createUser)
         )
-        .get("/:id", usersHandler.getUserById)
+        .get("/:id", usersHandler.getUserById, {
+            beforeHandle: apiMiddleware
+        })
         .delete("/:id", usersHandler.deleteUser)
         .post("/login", usersHandler.loginUser)
 }
