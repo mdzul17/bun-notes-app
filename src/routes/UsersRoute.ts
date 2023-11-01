@@ -11,6 +11,8 @@ export function configureUsersRoutes(app) {
         .get("/:id", usersHandler.getUserById, {
             beforeHandle: apiMiddleware
         })
-        .delete("/:id", usersHandler.deleteUser)
+        .delete("/:id", usersHandler.deleteUser, {
+            beforeHandle: apiMiddleware
+        })
         .post("/login", usersHandler.loginUser)
 }

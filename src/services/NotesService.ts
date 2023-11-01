@@ -2,6 +2,7 @@ import { NotFoundError, t } from "elysia";
 import { PrismaClient } from "@prisma/client";
 import { InvariantError } from "../exceptions/InvariantError";
 import { AuthorizationError } from "../exceptions/AuthorizationError";
+import { collaborationsService } from "./CollaborationsService";
 
 const db = new PrismaClient();
 
@@ -67,15 +68,33 @@ export const notesService = {
         if (!note) throw new NotFoundError('Note is not found!')
     },
 
-    verifyNoteOwner: async (userId: string) => {
-        const owner = await db.users.findFirst({
+    verifyNoteOwner: async (noteId: string, userId: string) => {
+        const note = await db.notes.findFirst({
             where: {
                 id: {
-                    equals: userId
-                }
+                    equals: noteId
+                },
             }
         })
 
-        if (!owner) throw new AuthorizationError('You have no access!')
+        if (!note) throw new NotFoundError("Note is not found!")
+
+        if (note.owner !== userId) throw new AuthorizationError('You have no access!')
+    },
+
+    verifyNoteAccess: async (noteId: string, userId: string) => {
+        try {
+            await notesService.verifyNoteOwner(noteId, userId)
+        } catch (error) {
+            if (error instanceof NotFoundError) {
+                throw error
+            }
+
+            try {
+                await collaborationsService.verifyCollaboration({ note_id: noteId, user_id: userId })
+            } catch (error) {
+                throw error
+            }
+        }
     }
 };

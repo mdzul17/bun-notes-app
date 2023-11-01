@@ -27,7 +27,7 @@ export const notesHandler = {
 
     getNoteById: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
         const userId = await jwt.verify(auth)
-        await notesService.verifyNoteOwner(userId)
+        await notesService.verifyNoteOwner(id, userId)
 
         const note = await notesService.getNoteById(id)
 
@@ -37,7 +37,7 @@ export const notesHandler = {
 
     deleteNote: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
         const userId = await jwt.verify(auth)
-        await notesService.verifyNoteOwner(userId)
+        await notesService.verifyNoteOwner(id, userId)
 
         await notesService.deleteNote(id)
 

@@ -30,3 +30,9 @@ model Users {
 model Authentications {
   token String @unique
 }
+
+model Collaborations {
+  id String @id
+  note_id String @db.VarChar(100)
+  user_id String @db.VarChar(100)
+}
