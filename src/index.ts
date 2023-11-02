@@ -11,7 +11,7 @@ import { AuthorizationError } from "./exceptions/AuthorizationError";
 import { InvariantError } from "./exceptions/InvariantError";
 import bearer from "@elysiajs/bearer";
 
-const app = new Elysia({ prefix: '/api/v1' })
+export const app = new Elysia({ prefix: '/api/v1' })
   .error('AUTHENTICATION_ERROR', AuthenticationError)
   .error('AUTHORIZATION_ERROR', AuthorizationError)
   .error('INVARIANT_ERROR', InvariantError)

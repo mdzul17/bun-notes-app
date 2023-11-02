@@ -21,7 +21,14 @@ interface loginPayload {
 
 export const usersService = {
     getUsers: async () => {
-        return await db.users.findMany();
+        return await db.users.findMany({
+            select: {
+                id: true,
+                username: true,
+                fullname: true,
+                email: true,
+            }
+        });
     },
 
     createUser: async (payload: createUserPayload) => {
@@ -46,6 +53,12 @@ export const usersService = {
                     equals: id,
                 },
             },
+            select: {
+                id: true,
+                username: true,
+                fullname: true,
+                email: true,
+            }
         });
 
         if (!user) throw new NotFoundError("User not found");
@@ -58,6 +71,23 @@ export const usersService = {
                 id: id,
             },
         });
+    },
+
+    getPasswordByUsername: async (username: string) => {
+        const getPassword = await db.users.findFirst({
+            where: {
+                username: {
+                    equals: username
+                }
+            },
+            select: {
+                password: true
+            }
+        })
+
+        if (!getPassword) throw new InvariantError("Username is not found!")
+
+        return getPassword.password
     },
 
     loginUser: async (body: loginPayload) => {
@@ -77,6 +107,7 @@ export const usersService = {
 
 
         if (!user) throw new AuthenticationError("Username or password is wrong!")
+        return user
     },
 
     verifyUserByUsername: async (username: string) => {

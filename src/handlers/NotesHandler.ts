@@ -3,10 +3,15 @@ import { v4 as uuidv4 } from "uuid"
 import { notesService } from "../services/NotesService";
 
 export const notesHandler = {
-    getNotes: async ({ jwt, cookie: { auth } }) => {
-        const userId = await jwt.verify(auth);
+    getNotes: async ({ jwt, cookie: { auth }, bearer }) => {
+        console.log(auth + " " + bearer)
+        const { id: userId } = auth ? await jwt.verify(auth) : await jwt.verify(bearer);
+        const notes = await notesService.getNotes(userId)
 
-        return await notesService.getNotes(userId)
+        return {
+            status: 200,
+            data: notes
+        }
     },
 
     createNote: async ({ jwt, body, set, cookie: { auth } }) => {
@@ -22,7 +27,10 @@ export const notesHandler = {
             }
         );
         set.status = 201;
-        return `Note ${body.title} successfully created!`;
+        return {
+            status: 201,
+            message: `Note ${body.title} successfully created!`
+        };
     },
 
     getNoteById: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
@@ -32,7 +40,10 @@ export const notesHandler = {
         const note = await notesService.getNoteById(id)
 
         set.status = 200;
-        return note
+        return {
+            status: 200,
+            data: note
+        }
     },
 
     deleteNote: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
@@ -42,7 +53,10 @@ export const notesHandler = {
         await notesService.deleteNote(id)
 
         set.status = 200;
-        return `Note successfully deleted!`
+        return {
+            status: 200,
+            message: `Note successfully deleted!`
+        }
     },
 
     validateCreateNote: t.Object({

@@ -16,10 +16,10 @@ interface notePayload {
 
 export const notesService = {
     getNotes: async (owner: string) => {
-        const notes = db.notes.findMany({
+        const notes = await db.notes.findMany({
             where: {
                 owner: {
-                    contains: owner
+                    equals: owner
                 }
             }
         });

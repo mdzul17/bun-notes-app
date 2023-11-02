@@ -16,7 +16,10 @@ export const collaborationsHandler = {
             }
         );
         set.status = 201;
-        return `Collaboration ${body.title} successfully added!`;
+        return {
+            status: 201,
+            message: `Collaboration ${body.title} successfully added!`
+        };
     },
 
     deleteCollaboration: async ({ jwt, set, cookie: { auth }, body: { note_id, user_id } }) => {
@@ -26,6 +29,9 @@ export const collaborationsHandler = {
         await collaborationsService.deleteCollaboration({ note_id, user_id })
 
         set.status = 200;
-        return `Collaboration successfully deleted!`
+        return {
+            status: 200,
+            message: `Collaboration successfully deleted!`
+        }
     },
 };
