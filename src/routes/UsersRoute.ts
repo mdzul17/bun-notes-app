@@ -1,12 +1,18 @@
-import { usersController } from "../controllers/UsersController";
+import { usersHandler } from "../handlers/UsersHandler";
+import { apiMiddleware } from "../middleware/ApiMiddleware";
 
 export function configureUsersRoutes(app) {
     return app
-        .get("/", usersController.getUsers)
-        .guard({ body: usersController.validateCreateUser }, (guardApp) =>
+        .get("/", usersHandler.getUsers)
+        .guard({ body: usersHandler.validateCreateUser }, (guardApp) =>
             guardApp
-                .post("/", usersController.createUser)
+                .post("/", usersHandler.createUser)
         )
-        .get("/:username", usersController.getUserById)
-        .delete("/:username", usersController.deleteUser)
+        .get("/:id", usersHandler.getUserById, {
+            beforeHandle: apiMiddleware
+        })
+        .delete("/:id", usersHandler.deleteUser, {
+            beforeHandle: apiMiddleware
+        })
+        .post("/login", usersHandler.loginUser)
 }
