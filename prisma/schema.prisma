@@ -17,6 +17,7 @@ model Notes {
   tags String @db.VarChar(200)
   updated_at DateTime @default(now())
   owner String
+  cover String @default("")
 }
 
 model Users {
@@ -24,7 +25,7 @@ model Users {
   username String @db.VarChar(20) @unique
   fullname String
   email String
-  password String @db.VarChar(16)
+  password String @db.VarChar(100)
 }
 
 model Authentications {

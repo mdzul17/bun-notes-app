@@ -1,22 +1,26 @@
 import { t } from "elysia";
 import { v4 as uuidv4 } from "uuid"
 import { usersService } from "../services/UsersService";
+import { InvariantError } from "../exceptions/InvariantError";
 
 export const usersHandler = {
     getUsers: async () => {
         const users = await usersService.getUsers()
         return {
-            status: 200,
+            status: "success",
             data: users
         }
     },
 
     createUser: async ({ body, set }) => {
+        await usersService.verifyUsernameIsAvailable(body.username);
+
         const id = uuidv4();
         const passwordHash = await Bun.password.hash(body.password, {
             algorithm: 'bcrypt',
             cost: parseInt(process.env.BUN_COST)
         })
+
 
         await usersService.createUser(
             {
@@ -34,7 +38,7 @@ export const usersHandler = {
 
         set.status = 200
         return {
-            status: 200,
+            status: "success",
             data: user
         };
     },
@@ -43,23 +47,22 @@ export const usersHandler = {
         await usersService.deleteUser(id)
 
         return {
-            status: 200,
+            status: "success",
             message: `User ${id} has been successfully deleted!`
         }
     },
 
     loginUser: async ({ jwt, setCookie, body, set }) => {
-        const hashedPassword = await usersService.getPasswordByUsername(body.password)
+        const hashedPassword = await usersService.getPasswordByUsername(body.username)
         const isMatch = await Bun.password.verify(body.password, hashedPassword)
 
         if (!isMatch) {
             set.status = 401
             return {
-                status: 401,
+                status: "failed",
                 message: `Password is not correct!`
             }
         }
-
         const login = await usersService.loginUser({ username: body.username, password: hashedPassword })
 
         setCookie("auth", await jwt.sign(login), {
@@ -69,7 +72,7 @@ export const usersHandler = {
 
         set.status = 200
         return {
-            status: 200,
+            status: "success",
             message: `Sign in successfully!`
         };
     },

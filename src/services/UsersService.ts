@@ -40,6 +40,9 @@ export const usersService = {
                 email: payload.email,
                 password: payload.password,
             },
+            select: {
+                id: true
+            }
         });
 
         if (!user) throw new InvariantError("User failed to be added")
@@ -138,4 +141,16 @@ export const usersService = {
 
         if (!user) throw new AuthorizationError("You have no access!")
     },
+
+    verifyUsernameIsAvailable: async (username: string) => {
+        const isAvailable = await db.users.findFirst({
+            where: {
+                username: {
+                    equals: username
+                }
+            },
+        })
+
+        if (isAvailable) throw new InvariantError('Username already exist!')
+    }
 };

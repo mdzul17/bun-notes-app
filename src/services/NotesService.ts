@@ -14,6 +14,15 @@ interface notePayload {
     owner: string
 }
 
+interface updateNotePayload {
+    title: string,
+    body: string,
+    tags: string,
+    owner: string,
+    id: string,
+    cover: any
+}
+
 export const notesService = {
     getNotes: async (owner: string) => {
         const notes = await db.notes.findMany({
@@ -37,6 +46,27 @@ export const notesService = {
                 body: payload.body,
                 tags: payload.tags,
                 owner: payload.owner,
+            },
+            select: {
+                id: true
+            }
+        });
+
+        if (!note) throw new InvariantError("User failed to be added")
+    },
+
+    updateNote: async (payload: updateNotePayload) => {
+        const updated_at = new Date();
+
+        const note = await db.notes.update({
+            where: {
+                id: payload.id,
+            },
+            data: {
+                title: payload.title,
+                body: payload.body,
+                tags: payload.tags,
+                updated_at: updated_at
             }
         });
 
@@ -96,5 +126,33 @@ export const notesService = {
                 throw error
             }
         }
+    },
+
+    getNoteTitleById: async (id: string) => {
+        const noteTitle = await db.notes.findFirst({
+            where: {
+                id: {
+                    equals: id
+                }
+            },
+            select: {
+                title: true
+            }
+        })
+
+        return noteTitle.title
+    },
+
+    addNoteCover: async (id: string, coverUrl: string) => {
+        const note = await db.notes.update({
+            where: {
+                id: id
+            },
+            data: {
+                cover: coverUrl
+            }
+        })
+
+        if (!note) throw new NotFoundError("Failed to update cover. Note is not available!")
     }
 };

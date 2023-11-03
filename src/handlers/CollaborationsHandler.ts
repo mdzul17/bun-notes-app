@@ -17,7 +17,7 @@ export const collaborationsHandler = {
         );
         set.status = 201;
         return {
-            status: 201,
+            status: "success",
             message: `Collaboration ${body.title} successfully added!`
         };
     },
@@ -30,7 +30,7 @@ export const collaborationsHandler = {
 
         set.status = 200;
         return {
-            status: 200,
+            status: "success",
             message: `Collaboration successfully deleted!`
         }
     },

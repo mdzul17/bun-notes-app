@@ -1,12 +1,12 @@
 export const apiMiddleware = async ({ bearer, set, cookie: { auth }, jwt }) => {
-    if (!bearer || !auth) {
+    if (!bearer && !auth) {
         set.status = 401
         set.headers[
             'WWW-Authenticate'
         ] = `Bearer realm='sign', error="invalid_request"`
 
         return {
-            status: 401,
+            status: "error",
             message: 'Unauthorized'
         }
     }
@@ -19,7 +19,7 @@ export const apiMiddleware = async ({ bearer, set, cookie: { auth }, jwt }) => {
         ] = `Bearer realm='sign', error="invalid_request"`
 
         return {
-            status: 401,
+            status: "error",
             message: 'Unauthorized'
         }
     }
