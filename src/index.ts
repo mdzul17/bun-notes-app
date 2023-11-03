@@ -10,6 +10,7 @@ import { AuthenticationError } from "./exceptions/AuthenticationError";
 import { AuthorizationError } from "./exceptions/AuthorizationError";
 import { InvariantError } from "./exceptions/InvariantError";
 import bearer from "@elysiajs/bearer";
+import { configureCommentsRoutes } from "./routes/CommentsRoute";
 
 export const app = new Elysia({
   prefix: process.env.BUN_PREFIX,
@@ -75,6 +76,7 @@ app
   .group("/notes", configureNotesRoutes)
   .group("/users", configureUsersRoutes)
   .group("/authentications", configureAuthenticationsRoutes)
+  .group("/comments", configureCommentsRoutes)
   .listen(process.env.BUN_PORT);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

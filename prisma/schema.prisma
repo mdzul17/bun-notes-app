@@ -11,21 +11,23 @@ datasource db {
 }
 
 model Notes {
-  id String @id
-  title String @db.VarChar(200) @unique
-  body String @db.Text
-  tags String @db.VarChar(200)
-  updated_at DateTime @default(now())
-  owner String
-  cover String @default("")
+  id         String     @id
+  title      String     @unique @db.VarChar(200)
+  body       String     @db.Text
+  tags       String     @db.VarChar(200)
+  updated_at DateTime   @default(now())
+  owner      String
+  cover      String     @default("")
+  comments   Comments[]
 }
 
 model Users {
-  id String @id
-  username String @db.VarChar(20) @unique
+  id       String     @id
+  username String     @unique @db.VarChar(20)
   fullname String
-  email String
-  password String @db.VarChar(100)
+  email    String
+  password String     @db.VarChar(100)
+  comments Comments[]
 }
 
 model Authentications {
@@ -33,7 +35,17 @@ model Authentications {
 }
 
 model Collaborations {
-  id String @id
+  id      String @id
   note_id String @db.VarChar(100)
   user_id String @db.VarChar(100)
+}
+
+model Comments {
+  id         String   @id
+  body       String   @db.Text
+  owner      String
+  users      Users    @relation(fields: [owner], references: [id])
+  noteId     String
+  notes      Notes    @relation(fields: [noteId], references: [id])
+  updated_at DateTime @default(now())
 }
