@@ -12,6 +12,7 @@
     "@elysiajs/jwt": "^0.7.0",
     "@elysiajs/swagger": "^0.7.3",
     "@prisma/client": "^5.4.2",
+    "amqplib": "^0.10.3",
     "elysia": "latest",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.4.2",

@@ -1,5 +1,7 @@
 import { usersService } from "../services/UsersService";
 import { authenticationsService } from "../services/AuthenticationsService";
+import { t } from "elysia";
+import { uuidv4 } from "uuid"
 
 export const authenticationsHandler = {
     postAuthentications: async ({ jwt, refreshJwt, body, set }) => {
@@ -52,4 +54,56 @@ export const authenticationsHandler = {
             message: "Refresh token has been successfully deleted",
         };
     },
+
+    loginUser: async ({ jwt, setCookie, body, set }) => {
+        const hashedPassword = await usersService.getPasswordByUsername(body.username)
+        const isMatch = await Bun.password.verify(body.password, hashedPassword)
+
+        if (!isMatch) {
+            set.status = 401
+            return {
+                status: "failed",
+                message: `Password is not correct!`
+            }
+        }
+        const login = await usersService.loginUser({ username: body.username, password: hashedPassword })
+
+        setCookie("auth", await jwt.sign(login), {
+            httpOnly: true,
+            maxAge: 4 * 86400,
+        });
+
+        set.status = 200
+        return {
+            status: "success",
+            message: `Sign in successfully!`
+        };
+    },
+
+    registerUser: async ({ body }) => {
+        await usersService.verifyUsernameIsAvailable(body.username);
+        await usersService.verifyEmailAvailability(body.email)
+
+        const id = uuidv4();
+        const passwordHash = await Bun.password.hash(body.password, {
+            algorithm: 'bcrypt',
+            cost: parseInt(process.env.BUN_COST)
+        })
+
+
+        await usersService.createUser(
+            {
+                id: `users-${id}`,
+                ...body,
+                password: passwordHash
+            },
+        );
+    },
+
+    registerPayload: t.Object({
+        fullname: t.String(),
+        username: t.String(),
+        password: t.String(),
+        email: t.String()
+    })
 };

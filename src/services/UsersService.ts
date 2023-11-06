@@ -152,5 +152,20 @@ export const usersService = {
         })
 
         if (isAvailable) throw new InvariantError('Username already exist!')
+    },
+
+    verifyEmailAvailability: async (email: string) => {
+        const isAvailable = await db.users.findFirst({
+            where: {
+                email: {
+                    equals: email
+                }
+            },
+            select: {
+                email: true
+            }
+        })
+
+        if (!isAvailable) throw new InvariantError('Email has already been used')
     }
 };
