@@ -4,14 +4,19 @@ import { notesService } from "../services/NotesService";
 import path from "path";
 
 export const notesHandler = {
-    getNotes: async ({ jwt, cookie: { auth }, bearer }) => {
-        console.log(auth + " " + bearer)
+    getNotes: async ({ jwt, cookie: { auth }, bearer, set }) => {
         const { id: userId } = auth ? await jwt.verify(auth) : await jwt.verify(bearer);
-        const notes = await notesService.getNotes(userId)
+        const { data, cache } = await notesService.getNotes(userId)
+
+        if (cache) {
+            set.headers[
+                'X-Data-Source'
+            ] = "cache"
+        }
 
         return {
             status: "success",
-            data: notes
+            data
         }
     },
 
@@ -59,12 +64,18 @@ export const notesHandler = {
         const { id: userId } = await jwt.verify(auth)
         await notesService.verifyNoteAccess(id, userId)
 
-        const note = await notesService.getNoteById(id)
+        const { data, cache } = await notesService.getNoteById(id)
+
+        if (cache) {
+            set.headers[
+                'X-Data-Source'
+            ] = "cache"
+        }
 
         set.status = 200;
         return {
             status: "success",
-            data: note
+            data: data
         }
     },
 
@@ -89,7 +100,7 @@ export const notesHandler = {
 
         const dirLocation = path.dirname(import.meta.dir)
         const fileLocation = "/storage/image"
-        const filename = +new Date() + noteTitle
+        const filename = +new Date() + noteTitle.replace(" ", "_")
         const fileType = cover.type.split('/')[1]
 
         await Bun.write(path.join(dirLocation, `${fileLocation}/${filename}.${fileType}`), cover);

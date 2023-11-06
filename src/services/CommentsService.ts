@@ -3,8 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import { InvariantError } from "../exceptions/InvariantError";
 import { AuthorizationError } from "../exceptions/AuthorizationError";
 import { collaborationsService } from "./CollaborationsService";
+import { CacheService } from "../utils/CacheService";
 
 const db = new PrismaClient();
+const cacheService = new CacheService()
 
 interface commentPayload {
     id: string,
@@ -20,17 +22,30 @@ interface updateCommentPayload {
 
 export const commentsService = {
     getComments: async (owner: string) => {
-        const comments = await db.comments.findMany({
-            where: {
-                owner: {
-                    equals: owner
-                }
+        try {
+            const isCached = await cacheService.get(`getComments`);
+            return {
+                data: JSON.parse(isCached),
+                cache: true
             }
-        });
+        } catch (error) {
+            const comments = await db.comments.findMany({
+                where: {
+                    owner: {
+                        equals: owner
+                    }
+                }
+            });
 
-        if (!comments) throw new NotFoundError("This user has no comments!")
+            if (!comments) throw new NotFoundError("This user has no comments!")
 
-        return comments
+            await cacheService.set(`getComments`, JSON.stringify(comments))
+
+            return {
+                data: comments,
+                cache: false
+            }
+        }
     },
 
     createComment: async (payload: commentPayload) => {
@@ -47,6 +62,7 @@ export const commentsService = {
         });
 
         if (!comment) throw new InvariantError("Comment failed to be added")
+        await cacheService.delete(payload.id)
     },
 
     updateComment: async (payload: updateCommentPayload) => {
@@ -63,20 +79,36 @@ export const commentsService = {
         });
 
         if (!comment) throw new InvariantError("User failed to be added")
+
+        await cacheService.delete(`Comments:${payload.id}`)
+        await cacheService.delete(`getComments`)
     },
 
     getCommentById: async (id: string) => {
-        const comment = await db.comments.findFirst({
-            where: {
-                id: {
-                    equals: id
-                }
+        try {
+            const isCached = await cacheService.get(`Comments:${id}`)
+            return {
+                data: JSON.parse(isCached),
+                cache: true
             }
-        })
+        } catch (error) {
+            const comment = await db.comments.findFirst({
+                where: {
+                    id: {
+                        equals: id
+                    }
+                }
+            })
 
-        if (!comment) throw new NotFoundError('Comment is not found!')
+            if (!comment) throw new NotFoundError('Comment is not found!')
 
-        return comment
+            await cacheService.set(`Comments:${id}`, JSON.stringify(comment))
+
+            return {
+                data: comment,
+                cache: false
+            }
+        }
     },
 
     deleteComment: async ({ params: { id } }) => {
@@ -88,6 +120,8 @@ export const commentsService = {
             })
 
         if (!comment) throw new NotFoundError('Comment is not found!')
+        await cacheService.delete(`Comments:${id}`)
+        await cacheService.delete(`getComments`)
     },
 
     verifyCommentOwner: async (commentId: string, userId: string) => {

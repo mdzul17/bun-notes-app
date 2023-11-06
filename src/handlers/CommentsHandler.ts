@@ -5,7 +5,6 @@ import path from "path";
 
 export const commentsHandler = {
     getComments: async ({ jwt, cookie: { auth }, bearer }) => {
-        console.log(auth + " " + bearer)
         const { id: userId } = auth ? await jwt.verify(auth) : await jwt.verify(bearer);
         const comments = await commentsService.getComments(userId)
 

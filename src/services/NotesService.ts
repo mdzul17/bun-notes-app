@@ -3,8 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import { InvariantError } from "../exceptions/InvariantError";
 import { AuthorizationError } from "../exceptions/AuthorizationError";
 import { collaborationsService } from "./CollaborationsService";
+import { CacheService } from "../utils/CacheService";
 
 const db = new PrismaClient();
+const cacheService = new CacheService();
 
 interface notePayload {
     id: string,
@@ -25,17 +27,28 @@ interface updateNotePayload {
 
 export const notesService = {
     getNotes: async (owner: string) => {
-        const notes = await db.notes.findMany({
-            where: {
-                owner: {
-                    equals: owner
-                }
+        try {
+            const isCached = await cacheService.get(`getNotes`)
+            return {
+                data: JSON.parse(isCached), cache: true
             }
-        });
+        } catch (error) {
+            const notes = await db.notes.findMany({
+                where: {
+                    owner: {
+                        equals: owner
+                    }
+                }
+            });
 
-        if (!notes) throw new NotFoundError("This user has no notes!")
+            if (!notes) throw new NotFoundError("This user has no notes!")
 
-        return notes
+            await cacheService.set(`getNotes`, JSON.stringify(notes))
+            return {
+                data: notes,
+                cache: false
+            }
+        }
     },
 
     createNote: async (payload: notePayload) => {
@@ -53,6 +66,9 @@ export const notesService = {
         });
 
         if (!note) throw new InvariantError("User failed to be added")
+
+        await cacheService.delete(`getNotes`)
+        return note.id
     },
 
     updateNote: async (payload: updateNotePayload) => {
@@ -71,23 +87,38 @@ export const notesService = {
         });
 
         if (!note) throw new InvariantError("User failed to be added")
+
+        await cacheService.delete(`getNotes`)
+        await cacheService.delete(`Notes:${payload.id}`)
     },
 
     getNoteById: async (id: string) => {
-        const note = await db.notes.findFirst({
-            where: {
-                id: {
-                    equals: id
-                }
+        try {
+            const isCached = await cacheService.get(`Notes:${id}`)
+            return {
+                data: JSON.parse(isCached),
+                cache: true
             }
-        })
+        } catch (error) {
+            const note = await db.notes.findFirst({
+                where: {
+                    id: {
+                        equals: id
+                    }
+                }
+            })
 
-        if (!note) throw new NotFoundError('Note is not found!')
+            if (!note) throw new NotFoundError('Note is not found!')
+            await cacheService.set(`Notes:${note.id}`, JSON.stringify(note))
 
-        return note
+            return {
+                data: note,
+                cache: false
+            }
+        }
     },
 
-    deleteNote: async ({ params: { id } }) => {
+    deleteNote: async (id: string) => {
         const note =
             await db.notes.delete({
                 where: {
@@ -96,6 +127,9 @@ export const notesService = {
             })
 
         if (!note) throw new NotFoundError('Note is not found!')
+
+        await cacheService.delete(`Notes:${id}`)
+        await cacheService.delete(`getNotes`)
     },
 
     verifyNoteOwner: async (noteId: string, userId: string) => {

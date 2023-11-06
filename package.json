@@ -15,6 +15,7 @@
     "elysia": "latest",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.4.2",
+    "redis": "^4.6.10",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
