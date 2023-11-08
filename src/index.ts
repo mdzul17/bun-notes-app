@@ -12,7 +12,7 @@ import { InvariantError } from "./exceptions/InvariantError";
 import bearer from "@elysiajs/bearer";
 import { configureCommentsRoutes } from "./routes/CommentsRoute";
 
-const app = new Elysia({
+export const app = new Elysia({
   prefix: process.env.BUN_PREFIX,
   serve: {
     hostname: process.env.BUN_HOST

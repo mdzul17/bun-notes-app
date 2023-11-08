@@ -166,6 +166,6 @@ export const usersService = {
             }
         })
 
-        if (!isAvailable) throw new InvariantError('Email has already been used')
+        if (isAvailable) throw new InvariantError('Email has already been used')
     }
 };

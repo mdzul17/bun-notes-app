@@ -2,6 +2,7 @@ import { usersService } from "../services/UsersService";
 import { authenticationsService } from "../services/AuthenticationsService";
 import { t } from "elysia";
 import { uuidv4 } from "uuid"
+import { messageQueue } from "../utils/MessageQueue";
 
 export const authenticationsHandler = {
     postAuthentications: async ({ jwt, refreshJwt, body, set }) => {
@@ -80,24 +81,17 @@ export const authenticationsHandler = {
         };
     },
 
-    registerUser: async ({ body }) => {
+    registerUser: async ({ body, set }) => {
         await usersService.verifyUsernameIsAvailable(body.username);
         await usersService.verifyEmailAvailability(body.email)
 
-        const id = uuidv4();
-        const passwordHash = await Bun.password.hash(body.password, {
-            algorithm: 'bcrypt',
-            cost: parseInt(process.env.BUN_COST)
-        })
+        await messageQueue.sendMessage("auth:register", JSON.stringify(body))
 
-
-        await usersService.createUser(
-            {
-                id: `users-${id}`,
-                ...body,
-                password: passwordHash
-            },
-        );
+        set.status = 201
+        return {
+            status: "success",
+            message: "Register is successfull. Email verification has been sent to your email!"
+        }
     },
 
     registerPayload: t.Object({
