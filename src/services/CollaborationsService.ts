@@ -13,6 +13,11 @@ interface verifiedPayload {
     note_id: string,
     user_id: string
 }
+interface deletePayload {
+    id: string,
+    note_id: string,
+    user_id: string
+}
 
 export const collaborationsService = {
     addCollaboration: async (payload: collaborationPayload) => {
@@ -28,7 +33,7 @@ export const collaborationsService = {
         return user;
     },
 
-    deleteCollaboration: async (payload: verifiedPayload) => {
+    deleteCollaboration: async (payload: deletePayload) => {
         const result = await db.collaborations.delete({
             where: {
                 id: payload.id,
@@ -50,8 +55,13 @@ export const collaborationsService = {
                     equals: payload.user_id
                 }
             },
+            select: {
+                id: true
+            }
         });
 
         if (!result) throw new InvariantError("Collaboration failed to be verified")
+
+        return result.id
     }
 };

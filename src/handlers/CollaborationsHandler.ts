@@ -22,11 +22,12 @@ export const collaborationsHandler = {
         };
     },
 
-    deleteCollaboration: async ({ jwt, set, cookie: { auth }, body: { note_id, user_id } }) => {
+    deleteCollaboration: async ({ jwt, set, cookie: { auth }, body: { note_id } }) => {
         const userId = await jwt.verify(auth)
 
         await notesService.verifyNoteAccess(note_id, userId)
-        await collaborationsService.deleteCollaboration({ note_id, user_id })
+        const id = await collaborationsService.verifyCollaboration({ note_id, user_id: userId })
+        await collaborationsService.deleteCollaboration({ id, note_id, user_id: userId })
 
         set.status = 200;
         return {

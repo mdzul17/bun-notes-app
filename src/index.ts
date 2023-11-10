@@ -27,25 +27,25 @@ export const app = new Elysia({
         set.status = 401
         return {
           status: "error",
-          message: error.toString()
+          message: error.toString().replace("Error: ", "")
         }
       case 'AUTHORIZATION_ERROR':
         set.status = 403
         return {
           status: "error",
-          message: error.toString()
+          message: error.toString().replace("Error: ", "")
         }
       case 'INVARIANT_ERROR':
         set.status = 400
         return {
           status: "error",
-          message: error.toString()
+          message: error.toString().replace("Error: ", "")
         }
       case 'NOT_FOUND':
         set.status = 404
         return {
           status: "error",
-          message: error.toString()
+          message: error.toString().replace("Error: ", "")
         }
       case 'INTERNAL_SERVER_ERROR':
         set.status = 500
