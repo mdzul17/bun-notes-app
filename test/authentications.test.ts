@@ -24,7 +24,6 @@ describe('Authentications Endpoint', () => {
         it('Should have access token and refresh token', async () => {
             const postPayload = {
                 username: 'dicoding',
-                password: hashedPassword
             }
 
             const req = await app.fetch(new Request(`${url}`, {
@@ -44,14 +43,14 @@ describe('Authentications Endpoint', () => {
     })
 
     describe('POST /login', () => {
-        beforeEach(async () => {
+        afterEach(async () => {
             await authentications.cleanTable()
         })
 
         it('should return status success', async () => {
             const loginPayload = {
                 username: 'dicoding',
-                password: hashedPassword
+                password: 'dicoding'
             }
 
             const req = await app.fetch(new Request(`${url}/login`, {

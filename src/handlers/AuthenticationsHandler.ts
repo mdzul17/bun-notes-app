@@ -6,8 +6,7 @@ import { messageQueue } from "../utils/MessageQueue";
 
 export const authenticationsHandler = {
     postAuthentications: async ({ jwt, refreshJwt, body, set }) => {
-        const userId = await usersService.verifyUserByUsername(body.username, body.password);
-
+        const userId = await usersService.verifyUserByUsername(body.username);
         const access_token = await jwt.sign(userId);
         const refresh_token = await refreshJwt.sign(userId);
 
