@@ -69,7 +69,14 @@ export const app = new Elysia({
   .use(bearer())
   .use(swagger({
     path: "/swagger"
-  }));
+  }))
+  .derive(async ({ bearer, jwt, cookie: { auth } }) => {
+    const token = auth ? await jwt.verify(auth) : await jwt.verify(bearer)
+
+    return {
+      userToken: token
+    }
+  });
 
 app
   .get("/", () => `Welcome to Bun Elysia`)

@@ -1,11 +1,11 @@
 import { t } from "elysia";
 import { v4 as uuidv4 } from "uuid"
 import { notesService } from "../services/NotesService";
+import { activitiesService } from "../services/ActivitiesService";
 import path from "path";
 
 export const notesHandler = {
-    getNotes: async ({ jwt, cookie: { auth }, bearer, set }) => {
-        const { id: userId } = auth ? await jwt.verify(auth) : await jwt.verify(bearer);
+    getNotes: async ({ userToken: { id: userId }, set }) => {
         const { data, cache } = await notesService.getNotes(userId)
 
         if (cache) {
@@ -14,15 +14,15 @@ export const notesHandler = {
             ] = "cache"
         }
 
+        await activitiesService.addActivity({ user_id: userId, activity: `User access the notes` })
+
         return {
             status: "success",
             data
         }
     },
 
-    createNote: async ({ jwt, body, set, cookie: { auth } }) => {
-
-        const { id: userId } = await jwt.verify(auth);
+    createNote: async ({ body, set, userToken: { id: userId } }) => {
 
         const id = uuidv4();
         const note = await notesService.createNote(
@@ -32,6 +32,8 @@ export const notesHandler = {
                 ...body
             }
         );
+
+        await activitiesService.addActivity({ user_id: userId, activity: `User create a note` })
         set.status = 201;
         return {
             status: "success",
@@ -42,9 +44,7 @@ export const notesHandler = {
         };
     },
 
-    updateNote: async ({ jwt, body, set, cookie: { auth }, params: { id } }) => {
-
-        const { id: userId } = await jwt.verify(auth);
+    updateNote: async ({ body, set, userToken: { id: userId }, params: { id } }) => {
         await notesService.verifyNoteAccess(id, userId);
 
         await notesService.updateNote(
@@ -53,6 +53,8 @@ export const notesHandler = {
                 ...body
             }
         );
+
+        await activitiesService.addActivity({ user_id: userId, activity: `User update the note ${id}` })
         set.status = 201;
         return {
             status: "success",
@@ -60,8 +62,7 @@ export const notesHandler = {
         };
     },
 
-    getNoteById: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
-        const { id: userId } = await jwt.verify(auth)
+    getNoteById: async ({ set, userToken: { id: userId }, params: { id } }) => {
         await notesService.verifyNoteAccess(id, userId)
 
         const { data, cache } = await notesService.getNoteById(id)
@@ -72,6 +73,8 @@ export const notesHandler = {
             ] = "cache"
         }
 
+        await activitiesService.addActivity({ user_id: userId, activity: `User access the note ${id}` })
+
         set.status = 200;
         return {
             status: "success",
@@ -79,11 +82,11 @@ export const notesHandler = {
         }
     },
 
-    deleteNote: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
-        const { id: userId } = await jwt.verify(auth)
+    deleteNote: async ({ set, userToken: { id: userId }, params: { id } }) => {
         await notesService.verifyNoteAccess(id, userId)
 
         await notesService.deleteNote(id)
+        await activitiesService.addActivity({ user_id: userId, activity: `User delete note ${id}` })
 
         set.status = 200;
         return {
@@ -92,8 +95,7 @@ export const notesHandler = {
         }
     },
 
-    uploadCover: async ({ jwt, set, cookie: { auth }, params: { id }, body: { cover } }) => {
-        const { id: userId } = await jwt.verify(auth)
+    uploadCover: async ({ set, params: { id }, body: { cover }, userToken: { id: userId } }) => {
 
         await notesService.verifyNoteAccess(id, userId)
         const noteTitle = await notesService.getNoteTitleById(id)
@@ -108,12 +110,39 @@ export const notesHandler = {
         const coverUrl = `http://${process.env.BUN_HOST}:${process.env.BUN_PORT}/notes/file/images/${filename}`
 
         await notesService.addNoteCover(id, coverUrl)
+        await activitiesService.addActivity({ user_id: userId, activity: `User upload the cover for ${id}` })
 
         set.status = 201
 
         return {
             status: "success",
             message: `Note Cover successfully added!`
+        }
+    },
+
+    likeNote: async ({ set, params: { id }, userToken: { id: userId } }) => {
+
+        await notesService.verifyIsNoteAvailable(id)
+        const isLike = await notesService.verifyLikeNote(id, userId)
+
+        if (isLike || isLike) {
+            await notesService.likeNote(id, userId)
+            await activitiesService.addActivity({ user_id: userId, activity: `User like the note ${id}` })
+
+            set.status = 200
+            return {
+                status: 'success',
+                message: 'Like has been added'
+            }
+        } else {
+            await notesService.deleteLikeNote(id, userId)
+            await activitiesService.addActivity({ user_id: userId, activity: `User unlike the note ${id}` })
+
+            set.status = 200
+            return {
+                status: 'success',
+                message: 'Like has been deleted'
+            }
         }
     },
 

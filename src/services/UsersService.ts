@@ -113,12 +113,15 @@ export const usersService = {
         return user
     },
 
-    verifyUserByUsername: async (username: string) => {
+    verifyUserByUsername: async (username: string, password: string) => {
         const user = await db.users.findFirst({
             where: {
                 username: {
                     equals: username,
                 },
+                password: {
+                    equals: password
+                }
             },
             select: {
                 id: true,

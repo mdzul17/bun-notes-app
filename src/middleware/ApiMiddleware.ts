@@ -11,7 +11,7 @@ export const apiMiddleware = async ({ bearer, set, cookie: { auth }, jwt }) => {
         }
     }
 
-    const profile = await jwt.verify(auth);
+    const profile = auth ? await jwt.verify(auth) : await jwt.verify(bearer);
     if (!profile) {
         set.status = 401
         set.headers[

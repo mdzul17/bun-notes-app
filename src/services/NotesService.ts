@@ -82,7 +82,8 @@ export const notesService = {
                 title: payload.title,
                 body: payload.body,
                 tags: payload.tags,
-                updated_at: updated_at
+                updated_at: updated_at,
+                is_edit: true
             }
         });
 
@@ -129,6 +130,49 @@ export const notesService = {
         if (!note) throw new NotFoundError('Note is not found!')
 
         await cacheService.delete(`Notes:${id}`)
+        await cacheService.delete(`getNotes`)
+    },
+
+    verifyLikeNote: async (note_id: string, user_id: string) => {
+        const note = await db.note_Likes.findFirst({
+            where: {
+                user_id: user_id,
+                notes_id: note_id
+            }
+        })
+
+        return note
+    },
+
+    likeNote: async (note_id: string, user_id: string) => {
+        const like = await db.note_Likes.create({
+            data: {
+                user_id: user_id,
+                notes_id: note_id
+            },
+            select: {
+                notes_id: true
+            }
+        })
+
+        if (!like) throw new InvariantError('Failed to like the note!')
+        await cacheService.delete(`Notes:${note_id}`)
+        await cacheService.delete(`getNotes`)
+        return like
+    },
+
+    deleteLikeNote: async (note_id: string, user_id: string) => {
+        const like = await db.note_Likes.delete({
+            where: {
+                user_id_notes_id: {
+                    user_id: user_id,
+                    notes_id: note_id,
+                }
+            }
+        })
+
+        if (!like) throw new NotFoundError('Note is not found!')
+        await cacheService.delete(`Notes:${note_id}`)
         await cacheService.delete(`getNotes`)
     },
 
@@ -188,5 +232,18 @@ export const notesService = {
         })
 
         if (!note) throw new NotFoundError("Failed to update cover. Note is not available!")
+    },
+
+    verifyIsNoteAvailable: async (id: string) => {
+        const is_available = await db.notes.findFirst({
+            where: {
+                id: id
+            },
+            select: {
+                id: true
+            }
+        })
+
+        if (!is_available) throw new NotFoundError('Note is not found')
     }
 };

@@ -11,23 +11,33 @@ datasource db {
 }
 
 model Notes {
-  id         String     @id
-  title      String     @unique @db.VarChar(200)
-  body       String     @db.Text
-  tags       String     @db.VarChar(200)
-  updated_at DateTime   @default(now())
-  owner      String
-  cover      String     @default("")
-  comments   Comments[]
+  id             String           @id
+  title          String           @unique @db.VarChar(200)
+  body           String           @db.Text
+  tags           String?          @db.VarChar(200)
+  updated_at     DateTime         @default(now())
+  owner          String
+  cover          String           @default("")
+  comments       Comments[]
+  view_count     Int              @default(0)
+  collaborations Collaborations[]
+  is_edit        Boolean          @default(false)
+  note_likes     Note_Likes[]
 }
 
 model Users {
-  id       String     @id
-  username String     @unique @db.VarChar(20)
-  fullname String
-  email    String
-  password String     @db.VarChar(100)
-  comments Comments[]
+  id             String           @id
+  username       String           @unique @db.VarChar(20)
+  fullname       String
+  email          String
+  password       String           @db.VarChar(100)
+  comments       Comments[]
+  profile_pict   String?
+  bio            String?          @db.Text
+  activities     Activities[]
+  collaborations Collaborations[]
+  note_likes     Note_Likes[]
+  comment_likes  Comment_Likes[]
 }
 
 model Authentications {
@@ -38,14 +48,45 @@ model Collaborations {
   id      String @id
   note_id String @db.VarChar(100)
   user_id String @db.VarChar(100)
+  notes   Notes  @relation(fields: [note_id], references: [id])
+  users   Users  @relation(fields: [user_id], references: [id])
 }
 
 model Comments {
-  id         String   @id
-  body       String   @db.Text
-  owner      String
-  users      Users    @relation(fields: [owner], references: [id])
-  noteId     String
-  notes      Notes    @relation(fields: [noteId], references: [id])
-  updated_at DateTime @default(now())
+  id            String          @id
+  body          String          @db.Text
+  owner         String
+  users         Users           @relation(fields: [owner], references: [id])
+  noteId        String
+  notes         Notes           @relation(fields: [noteId], references: [id])
+  updated_at    DateTime        @default(now())
+  is_edit       Boolean         @default(false)
+  comment_likes Comment_Likes[]
+}
+
+model Activities {
+  user_id  String   @id
+  users    Users    @relation(fields: [user_id], references: [id])
+  activity String
+  doing_at DateTime @default(now())
+}
+
+model Note_Likes {
+  user_id  String
+  users    Users    @relation(fields: [user_id], references: [id])
+  notes_id String
+  notes    Notes    @relation(fields: [notes_id], references: [id])
+  liked_at DateTime @default(now())
+
+  @@id([user_id, notes_id])
+}
+
+model Comment_Likes {
+  user_id    String
+  users      Users    @relation(fields: [user_id], references: [id])
+  comment_id String
+  comments   Comments @relation(fields: [comment_id], references: [id])
+  liked_at   DateTime @default(now())
+
+  @@id([user_id, comment_id])
 }

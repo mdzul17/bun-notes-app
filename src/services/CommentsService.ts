@@ -2,7 +2,6 @@ import { NotFoundError, t } from "elysia";
 import { PrismaClient } from "@prisma/client";
 import { InvariantError } from "../exceptions/InvariantError";
 import { AuthorizationError } from "../exceptions/AuthorizationError";
-import { collaborationsService } from "./CollaborationsService";
 import { CacheService } from "../utils/CacheService";
 
 const db = new PrismaClient();
@@ -74,7 +73,8 @@ export const commentsService = {
             },
             data: {
                 body: payload.body,
-                updated_at: updated_at
+                updated_at: updated_at,
+                is_edit: true
             }
         });
 

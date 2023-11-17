@@ -16,4 +16,7 @@ export function configureNotesRoutes(app) {
             body: notesHandler.validateCoverNote,
             beforeHandle: [apiMiddleware, fileMiddleware],
         })
+        .post("/:id/like", notesHandler.likeNote, {
+            beforeHandle: [apiMiddleware]
+        })
 }

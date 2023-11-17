@@ -1,15 +1,14 @@
-import { afterAll, beforeAll, describe, expect, it, jest } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { app } from "../src/index"
-import { PrismaClient } from "@prisma/client";
-import { jsonwebtoken as jwt } from "jsonwebtoken";
+import { users } from "../helpers/UsersHelper";
+import { authentications } from "../helpers/AuthenticationsHelper";
 
-const db = new PrismaClient();
 const url = `http://localhost:3000/api/v1/users`;
 
 describe('Users endpoint', () => {
-    describe('GET USERS', () => {
-        afterAll(async () => {
-            await db.users.deleteMany({})
+    describe('GET /users', () => {
+        beforeEach(async () => {
+            await users.cleanTable()
         })
 
         it('should return 200 and have 0 array of results', async () => {
@@ -21,17 +20,12 @@ describe('Users endpoint', () => {
 
             const responseBody = await res.json();
             expect(res.status).toEqual(200);
-            expect(responseBody).toHaveLength(0);
-            expect(responseBody.password).toEqual(undefined)
+            expect(responseBody.data).toHaveLength(0);
         })
 
         it('should return 200 and have 2 array of results', async () => {
-            await db.users.createMany({
-                data: [
-                    { id: 'user-123', email: 'dicoding@dicoding.com', username: 'dicoding', password: 'password123', fullname: 'Dicoding Indonesia' },
-                    { id: 'user-124', email: 'dicoding2@dicoding.com', username: 'dicoding2', password: 'password123', fullname: 'Dicoding2 Indonesia' }
-                ]
-            })
+            await users.addUser({ id: `user-123`, username: 'dicoding', email: 'dicoding@dicoding.com', fullname: 'dicoding', password: 'dicoding123' })
+            await users.addUser({ id: `user-124`, username: 'bayu', email: 'dicoding@dicoding.com', fullname: 'bayu', password: 'dicoding123' })
 
             const req = new Request(url, {
                 method: 'GET'
@@ -41,18 +35,18 @@ describe('Users endpoint', () => {
 
             const responseBody = await res.json();
             expect(res.status).toEqual(200);
-            expect(responseBody).toHaveLength(2);
-            expect(responseBody[0].password).toEqual(undefined);
-            expect(responseBody[1].password).toEqual(undefined);
+            expect(responseBody.data).toHaveLength(2);
+            expect(responseBody.data[0].password).toEqual(undefined);
+            expect(responseBody.data[1].password).toEqual(undefined);
         })
     })
 
-    describe('POST USERS', () => {
-        afterAll(async () => {
-            await db.users.deleteMany({})
+    describe('POST /users', () => {
+        beforeEach(async () => {
+            await users.cleanTable()
         })
 
-        it('should return 201 and have 0 array of results', async () => {
+        it('should return 201', async () => {
             const payload = {
                 fullname: 'Dicoding Indonesia',
                 username: 'dicoding',
@@ -90,31 +84,80 @@ describe('Users endpoint', () => {
             });
 
             const res = await app.fetch(req);
-            console.log(res)
 
             expect(res.status).toEqual(400);
         })
     })
 
-    describe('GET USER BY ID', () => {
-        afterAll(async () => {
-            await db.users.deleteMany({})
-        })
-
-        beforeAll(async () => {
-            await db.users.create({ data: { id: 'user-123', email: 'dicoding@dicoding.com', username: 'dicoding', password: 'password123', fullname: 'Dicoding Indonesia' } })
+    describe('GET /users/{id}', () => {
+        beforeEach(async () => {
+            await users.cleanTable()
+            await authentications.cleanTable()
+            await users.addUser({ id: 'user-123', email: 'dicoding@dicoding.com', username: 'dicoding', password: 'password123', fullname: 'Dicoding Indonesia' })
         })
 
         it('should respond 201 status code and an object users', async () => {
-            const secret_key = process.env.JWT_SECRET
-            const token = jwt.sign({ id: 'user-123' }, secret_key);
+            const payload = {
+                username: 'dicoding',
+                password: 'password123'
+            }
 
-            const req = new Request(`${url}/user-123`, {
+            const token = await app.fetch(new Request(`http://localhost:3000/api/v1/authentications/`, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }))
+
+            const userToken = await token.json();
+
+            const req = await app.fetch(new Request(`${url}/user-123`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${userToken.data.access_token}`
                 },
-            });
+            }))
+
+            const responseBody = await req.json()
+
+            expect(responseBody.status).toEqual('success')
+        })
+    })
+
+    describe('DELETE /users/{id}', () => {
+        beforeEach(async () => {
+            await users.cleanTable()
+            await authentications.cleanTable()
+            await users.addUser({})
+        })
+
+        it('should return status success', async () => {
+            const loginPayload = {
+                username: 'dicoding',
+                password: 'dicoding'
+            }
+            const token = await app.fetch(new Request('https://localhost:3000/api/v1/authentications', {
+                method: 'POST',
+                body: JSON.stringify(loginPayload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }))
+
+            const userToken = await token.json()
+
+            const req = await app.fetch(new Request(`${url}/user-123`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${userToken.data.access_token}`
+                }
+            }))
+
+            const responseBody = await req.json()
+
+            expect(req.status).toEqual(200)
+            expect(responseBody.status).toEqual('success')
         })
     })
 })

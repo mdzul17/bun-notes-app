@@ -1,11 +1,9 @@
 import { t } from "elysia";
 import { v4 as uuidv4 } from "uuid"
 import { commentsService } from "../services/CommentsService";
-import path from "path";
 
 export const commentsHandler = {
-    getComments: async ({ jwt, cookie: { auth }, bearer }) => {
-        const { id: userId } = auth ? await jwt.verify(auth) : await jwt.verify(bearer);
+    getComments: async ({ userToken: { id: userId } }) => {
         const comments = await commentsService.getComments(userId)
 
         return {
@@ -14,9 +12,7 @@ export const commentsHandler = {
         }
     },
 
-    createComment: async ({ jwt, body, set, cookie: { auth } }) => {
-
-        const { id: userId } = await jwt.verify(auth);
+    createComment: async ({ body, set, userToken: { id: userId } }) => {
 
         const id = uuidv4();
         const comment = await commentsService.createComment(
@@ -36,9 +32,7 @@ export const commentsHandler = {
         };
     },
 
-    updateComment: async ({ jwt, body, set, cookie: { auth }, params: { id } }) => {
-
-        const { id: userId } = await jwt.verify(auth);
+    updateComment: async ({ body, set, userToken: { id: userId }, params: { id } }) => {
         await commentsService.verifyCommentOwner(id, userId);
 
         await commentsService.updateComment(
@@ -54,8 +48,7 @@ export const commentsHandler = {
         };
     },
 
-    getCommentById: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
-        const { id: userId } = await jwt.verify(auth)
+    getCommentById: async ({ set, userToken: { id: userId }, params: { id } }) => {
         await commentsService.verifyCommentOwner(id, userId)
 
         const comment = await commentsService.getCommentById(id)
@@ -67,8 +60,7 @@ export const commentsHandler = {
         }
     },
 
-    deleteComment: async ({ jwt, set, cookie: { auth }, params: { id } }) => {
-        const { id: userId } = await jwt.verify(auth)
+    deleteComment: async ({ set, userToken: { id: userId }, params: { id } }) => {
         await commentsService.verifyCommentOwner(id, userId)
 
         await commentsService.deleteComment(id)
