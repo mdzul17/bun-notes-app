@@ -65,28 +65,27 @@ model Comments {
 }
 
 model Activities {
-  user_id  String   @id
+  id       Int      @id @default(autoincrement())
+  user_id  String
   users    Users    @relation(fields: [user_id], references: [id])
   activity String
   doing_at DateTime @default(now())
 }
 
 model Note_Likes {
+  id       Int      @id @default(autoincrement())
   user_id  String
   users    Users    @relation(fields: [user_id], references: [id])
   notes_id String
   notes    Notes    @relation(fields: [notes_id], references: [id])
   liked_at DateTime @default(now())
-
-  @@id([user_id, notes_id])
 }
 
 model Comment_Likes {
+  id         Int      @id @default(autoincrement())
   user_id    String
   users      Users    @relation(fields: [user_id], references: [id])
   comment_id String
   comments   Comments @relation(fields: [comment_id], references: [id])
   liked_at   DateTime @default(now())
-
-  @@id([user_id, comment_id])
 }

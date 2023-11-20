@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
 
-export const authentications = {
+export const authenticationsTableTestHelper = {
     addNotes: async (token: string) => {
         await db.authentications.create({
             data: {

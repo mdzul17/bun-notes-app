@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { app } from "../src"
-import { authentications } from "../helpers/AuthenticationsHelper";
-import { users } from "../helpers/UsersHelper";
+import { authenticationsTableTestHelper } from "../helpers/AuthenticationsHelper";
+import { usersTableTestHelper } from "../helpers/UsersHelper";
 
 const url = "http://localhost:3000/api/v1/authentications"
 let hashedPassword = await Bun.password.hash('dicoding', {
@@ -11,14 +11,14 @@ let hashedPassword = await Bun.password.hash('dicoding', {
 
 describe('Authentications Endpoint', () => {
     beforeAll(async () => {
-        await users.addUser({ password: hashedPassword })
+        await usersTableTestHelper.addUser({ password: hashedPassword })
     })
     afterAll(async () => {
-        await users.cleanTable()
+        await usersTableTestHelper.cleanTable()
     })
     describe('POST /', () => {
         afterEach(async () => {
-            await authentications.cleanTable()
+            await authenticationsTableTestHelper.cleanTable()
         })
 
         it('Should have access token and refresh token', async () => {
@@ -44,7 +44,7 @@ describe('Authentications Endpoint', () => {
 
     describe('POST /login', () => {
         afterEach(async () => {
-            await authentications.cleanTable()
+            await authenticationsTableTestHelper.cleanTable()
         })
 
         it('should return status success', async () => {
@@ -70,7 +70,7 @@ describe('Authentications Endpoint', () => {
 
     describe('POST /register', () => {
         afterEach(async () => {
-            await authentications.cleanTable()
+            await authenticationsTableTestHelper.cleanTable()
         })
 
         it('should return status success', async () => {
@@ -99,8 +99,8 @@ describe('Authentications Endpoint', () => {
 
     describe('PUT /', () => {
         afterEach(async () => {
-            await authentications.cleanTable()
-            await users.cleanTable()
+            await authenticationsTableTestHelper.cleanTable()
+            await usersTableTestHelper.cleanTable()
         })
 
         it('should return new access token', async () => {

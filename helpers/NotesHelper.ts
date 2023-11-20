@@ -1,8 +1,9 @@
 import { PrismaClient } from "@prisma/client";
+import { CacheService } from "../src/utils/CacheService";
 
 const db = new PrismaClient();
 
-export const notes = {
+export const notesTableTestHelper = {
     addNotes: async ({
         id = `note-123`,
         title = 'dicoding',
@@ -22,6 +23,8 @@ export const notes = {
     },
     cleanTable: async () => {
         await db.notes.deleteMany()
+        const cacheService = new CacheService()
+        await cacheService.delete('getNotes')
     },
     getNotesById: async ({
         id = `note-123`,

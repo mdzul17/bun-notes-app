@@ -16,6 +16,7 @@ export const notesHandler = {
 
         await activitiesService.addActivity({ user_id: userId, activity: `User access the notes` })
 
+        set.status = 200
         return {
             status: "success",
             data
@@ -149,7 +150,6 @@ export const notesHandler = {
     validateCreateNote: t.Object({
         title: t.String(),
         body: t.String(),
-        tags: t.String(),
     }),
 
     validateCoverNote: t.Object({

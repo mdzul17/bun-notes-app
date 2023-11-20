@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
 
-export const comments = {
+export const commentsTableTestHelpers = {
     addNotes: async ({
         id = `comment-123`,
         body = 'dicoding',

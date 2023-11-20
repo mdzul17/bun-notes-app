@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const db = new PrismaClient();
 
-export const users = {
+export const usersTableTestHelper = {
     addUser: async ({
         id = `user-123`,
         username = 'dicoding',

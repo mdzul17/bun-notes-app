@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { app } from "../src/index"
-import { users } from "../helpers/UsersHelper";
-import { authentications } from "../helpers/AuthenticationsHelper";
+import { usersTableTestHelper } from "../helpers/UsersHelper";
+import { authenticationsTableTestHelper } from "../helpers/AuthenticationsHelper";
 
 const url = `http://localhost:3000/api/v1/users`;
 
 describe('Users endpoint', () => {
-    describe('GET /users', () => {
+    describe('GET /usersTableTestHelper', () => {
         beforeEach(async () => {
-            await users.cleanTable()
+            await usersTableTestHelper.cleanTable()
         })
 
         it('should return 200 and have 0 array of results', async () => {
@@ -24,8 +24,8 @@ describe('Users endpoint', () => {
         })
 
         it('should return 200 and have 2 array of results', async () => {
-            await users.addUser({ id: `user-123`, username: 'dicoding', email: 'dicoding@dicoding.com', fullname: 'dicoding', password: 'dicoding123' })
-            await users.addUser({ id: `user-124`, username: 'bayu', email: 'dicoding@dicoding.com', fullname: 'bayu', password: 'dicoding123' })
+            await usersTableTestHelper.addUser({ id: `user-123`, username: 'dicoding', email: 'dicoding@dicoding.com', fullname: 'dicoding', password: 'dicoding123' })
+            await usersTableTestHelper.addUser({ id: `user-124`, username: 'bayu', email: 'dicoding@dicoding.com', fullname: 'bayu', password: 'dicoding123' })
 
             const req = new Request(url, {
                 method: 'GET'
@@ -41,9 +41,9 @@ describe('Users endpoint', () => {
         })
     })
 
-    describe('POST /users', () => {
+    describe('POST /usersTableTestHelper', () => {
         beforeEach(async () => {
-            await users.cleanTable()
+            await usersTableTestHelper.cleanTable()
         })
 
         it('should return 201', async () => {
@@ -89,20 +89,20 @@ describe('Users endpoint', () => {
         })
     })
 
-    describe('GET /users/{id}', () => {
+    describe('GET /usersTableTestHelper/{id}', () => {
         beforeEach(async () => {
-            await users.cleanTable()
-            await authentications.cleanTable()
-            await users.addUser({ id: 'user-123', email: 'dicoding@dicoding.com', username: 'dicoding', password: 'password123', fullname: 'Dicoding Indonesia' })
+            await usersTableTestHelper.cleanTable()
+            await authenticationsTableTestHelper.cleanTable()
+            await usersTableTestHelper.addUser({ id: 'user-123', email: 'dicoding@dicoding.com', username: 'dicoding', password: 'password123', fullname: 'Dicoding Indonesia' })
         })
 
-        it('should respond 201 status code and an object users', async () => {
+        it('should respond 201 status code and an object usersTableTestHelper', async () => {
             const payload = {
                 username: 'dicoding',
                 password: 'password123'
             }
 
-            const token = await app.fetch(new Request(`http://localhost:3000/api/v1/authentications/`, {
+            const token = await app.fetch(new Request(`http://localhost:3000/api/v1/authenticationsTableTestHelper/`, {
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: {
@@ -125,11 +125,11 @@ describe('Users endpoint', () => {
         })
     })
 
-    describe('DELETE /users/{id}', () => {
+    describe('DELETE /usersTableTestHelper/{id}', () => {
         beforeEach(async () => {
-            await users.cleanTable()
-            await authentications.cleanTable()
-            await users.addUser({})
+            await usersTableTestHelper.cleanTable()
+            await authenticationsTableTestHelper.cleanTable()
+            await usersTableTestHelper.addUser({})
         })
 
         it('should return status success', async () => {
@@ -137,7 +137,7 @@ describe('Users endpoint', () => {
                 username: 'dicoding',
                 password: 'dicoding'
             }
-            const token = await app.fetch(new Request('https://localhost:3000/api/v1/authentications', {
+            const token = await app.fetch(new Request('https://localhost:3000/api/v1/authenticationsTableTestHelper', {
                 method: 'POST',
                 body: JSON.stringify(loginPayload),
                 headers: {
