@@ -34,6 +34,7 @@ export const authenticationsHandler = {
 
         set.status = 200;
         return {
+            status: 'success',
             message: "Access token successfully updated",
             data: {
                 access_token: access_token,

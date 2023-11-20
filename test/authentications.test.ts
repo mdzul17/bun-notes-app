@@ -67,4 +67,71 @@ describe('Authentications Endpoint', () => {
             expect(responseBody.status).toEqual('success')
         })
     })
+
+    describe('POST /register', () => {
+        afterEach(async () => {
+            await authentications.cleanTable()
+        })
+
+        it('should return status success', async () => {
+            const loginPayload = {
+                fullname: 'Dicoding Indonesia',
+                username: 'admin',
+                password: 'admin-123',
+                email: 'admin@dicoding.com'
+            }
+
+            const req = await app.fetch(new Request(`${url}/register`, {
+                method: 'POST',
+                body: JSON.stringify(loginPayload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }))
+
+            const responseBody = await req.json()
+
+            expect(req.status).toEqual(201)
+            expect(responseBody.status).toEqual('success')
+            expect(responseBody.message).toEqual('Register is successfull. Email verification has been sent to your email!')
+        })
+    })
+
+    describe('PUT /', () => {
+        afterEach(async () => {
+            await authentications.cleanTable()
+            await users.cleanTable()
+        })
+
+        it('should return new access token', async () => {
+            const postPayload = {
+                username: 'dicoding',
+            }
+
+            const reqToken = await app.fetch(new Request(`${url}`, {
+                method: 'POST',
+                body: JSON.stringify(postPayload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }))
+
+            const { refresh_token } = await reqToken.json()
+
+            const updateToken = await app.fetch(new Request(`${url}/`, {
+                method: 'PUT',
+                body: JSON.stringify({ refresh_token }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }))
+
+            const res = await updateToken.json()
+
+            expect(updateToken.status).toEqual(200)
+            expect(res.status).toEqual('success')
+            expect(res.message).toEqual("Access token successfully updated")
+            expect(res.data).toHaveProperty('access_token')
+        })
+    })
 })
